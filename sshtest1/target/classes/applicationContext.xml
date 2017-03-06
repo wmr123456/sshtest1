@@ -18,7 +18,44 @@
 			<property name="user" value="root"/>
 			<property name="password" value="root"/>
 		</bean>
+				
+		<!-- 创建sessionFactory -->
+		<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" >
+			<!-- 注入数据库的配置 -->
+			<property name="dataSource" ref="dataSource"></property>
+			<!-- 指定实用的hibernate核心配置文件 -->
+			<property name="configLocations" value="classpath:hibernate.cfg.xml"></property>
+			
+		</bean>
 		
 		<!-- action配置 -->
-		<bean id="userAction" class="com.wmr.ssh.action.UserAction" scope="prototype"></bean>
+		<!-- action inject service  -->
+		<bean id="userAction" class="com.wmr.ssh.action.UserAction"  scope="prototype">
+			<property name="userService" ref="userService"/>
+		</bean>
+		
+		<!-- service inject dao -->
+		<bean id="userService" class="com.wmr.ssh.service.UserService">
+			<property name="userDao" ref="userDao"/>
+		</bean>
+		
+		<!-- dao inject hibernateTemplate -->
+		<bean id="userDao" class="com.wmr.ssh.dao.UserDaoImpl">
+			<property name="hibernateTemplate" ref="hibernateTemplate"/>
+		</bean>
+				
+		<!-- HibernateTemplate inject sessionFactory -->
+		<bean id="hibernateTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">
+			<property name="sessionFactory" ref="sessionFactory"/>
+		</bean>
+		
+		<!-- 配置事务 -->
+		<!-- 第一步：配置事务管理器 -->
+		<bean id="hibernateTransactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+			<!-- 注入sessionFactory -->
+			<property name="sessionFactory" ref="sessionFactory" />
+		</bean>
+		<!-- 第二步开启事务注解 -->
+		<tx:annotation-driven transaction-manager="hibernateTransactionManager"/>
+		
 </beans>		
